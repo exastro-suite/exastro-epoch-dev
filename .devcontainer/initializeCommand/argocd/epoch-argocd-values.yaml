@@ -1,0 +1,44 @@
+#   Copyright 2024 NEC Corporation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+createClusterRoles: false
+
+global:
+  image:
+    tag: "{{ARGOCD_APP_VERSION}}"
+
+repoServer:
+  env:
+    - name: HTTP_PROXY
+      value: {{HTTP_PROXY}}
+    - name: http_proxy
+      value: {{HTTP_PROXY}}
+    - name: HTTPS_PROXY
+      value: {{HTTPS_PROXY}}
+    - name: https_proxy
+      value: {{HTTPS_PROXY}}
+    - name: NO_PROXY
+      value: "{{NO_PROXY}},argocd-applicationset-controller,argocd-dex-server,argocd-redis,argocd-repo-server,argocd-server"
+    - name: no_proxy
+      value: "{{NO_PROXY}},argocd-applicationset-controller,argocd-dex-server,argocd-redis,argocd-repo-server,argocd-server"
+
+configs:
+  secret:
+    argocdServerAdminPassword: "{{_ARGOCD_ADMIN_PASSWORD}}"
+
+server:
+  service:
+    type: NodePort
+    nodePortHttp: {{ARGOCD_HTTP_PORT}}
+    nodePortHttps: {{ARGOCD_HTTPS_PORT}}

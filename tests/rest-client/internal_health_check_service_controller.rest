@@ -1,0 +1,21 @@
+# not quate strings
+@sys-user-id = admin
+@sys-user-pw = password
+@org-user-id = admin
+@org-user-pw = password
+@base_sys_url = http://platform-auth:{{sys-mng-port}}
+@base_org_url = http://platform-auth:{{org-mng-port}}
+
+@base_internal_url = http://epoch-server:8001
+
+# share organization_id (同じものを複数記載すると最後の設定値が渡される)
+@organization_id = org1
+@workspace_id = ws1
+
+###
+GET {{base_internal_url}}/internal-api/health-check/liveness
+User-Id: dummy
+
+###
+GET {{base_internal_url}}/internal-api/health-check/readiness
+User-Id: dummy

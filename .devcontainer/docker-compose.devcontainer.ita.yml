@@ -1,0 +1,147 @@
+#   Copyright 2024 NEC Corporation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+version: '3.1'
+services:
+  ita-mariadb:
+    volumes:
+      - ${ITA_REPO_ROOT}/ita_root/ita_mariadb/conf/custom.cnf:/etc/mysql/conf.d/custom.cnf
+
+  ita-api-organization:
+    build:
+      context: ${ITA_REPO_ROOT}
+      target: develop_build
+    volumes:
+      - ../.volumes/storage:/storage
+  ita-api-admin:
+    build:
+      context: ${ITA_REPO_ROOT}
+      target: develop_build
+    volumes:
+      - ../.volumes/storage:/storage
+  ita-web-server:
+    build:
+      context: ${ITA_REPO_ROOT}
+  ita-by-ansible-execute:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-ansible-legacy-role-vars-listup:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-ansible-legacy-vars-listup:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-ansible-pioneer-vars-listup:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-ansible-towermaster-sync:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-collector:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-conductor-synchronize:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-conductor-regularly:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-menu-create:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-menu-export-import:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-excel-export-import:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-terraform-cloud-ep-execute:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-terraform-cloud-ep-vars-listup:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-terraform-cli-execute:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-terraform-cli-vars-listup:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-hostgroup-split:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-cicd-for-iac:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-execinstance-dataautoclean:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-by-file-autoclean:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}
+  ita-migration:
+    build:
+      context: ${ITA_REPO_ROOT}
+      target: develop_build
+    volumes:
+      - ../.volumes/storage:/storage
+  ita-api-oase-receiver:
+    build:
+      context: ${ITA_REPO_ROOT}
+      target: develop_build
+    volumes:
+      - ../.volumes/storage:/storage
+  ita-by-oase-conclusion:
+    build:
+      context: ${ITA_REPO_ROOT}
+    environment:
+      - EXECUTE_INTERVAL=${ITA_BY_INTERVAL}

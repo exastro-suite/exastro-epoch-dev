@@ -1,0 +1,23 @@
+# not quate strings
+@sys-user-id = admin
+@sys-user-pw = password
+@org-user-id = admin
+@org-user-pw = password
+@base_sys_url = http://platform-auth:{{sys-mng-port}}
+@base_org_url = http://platform-auth:{{org-mng-port}}
+
+@base_internal_url = http://epoch-server:8001
+
+# share organization_id (同じものを複数記載すると最後の設定値が渡される)
+@organization_id = org1
+@workspace_id = ws1
+
+###
+POST {{base_internal_url}}/internal-api/{{organization_id}}/workspaces/{{workspace_id}}/epoch/
+User-Id: dummy
+content-type: application/json
+
+{
+    "role_id": ""
+}
+

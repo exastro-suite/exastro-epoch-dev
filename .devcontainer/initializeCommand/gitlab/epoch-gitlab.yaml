@@ -1,0 +1,168 @@
+#   Copyright 2024 NEC Corporation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-config
+data:
+  gitlab_omnibus_config: |
+    postgresql['shared_buffers'] = "2048MB"
+    postgresql['work_mem'] = "128MB"
+    postgresql['maintenance_work_mem'] = "128MB"
+    postgresql['effective_cache_size'] = "128MB"
+    postgresql['checkpoint_segments'] = 16
+    postgresql['checkpoint_timeout'] = "10min"
+    external_url ENV['GITLAB_EXTERNAL_URL']
+    nginx['listen_port'] = 40080
+    registry_external_url ENV['GITLAB_EXTERNAL_URL_REGISTRY']
+    registry_nginx['listen_port'] = 40081
+    gitlab_rails['initial_root_password'] = ENV['GITLAB_ROOT_PASSWORD']
+    gitlab_rails['registry_enabled'] = false;
+    gitlab_rails['db_prepared_statements'] = false;
+    gitlab_rails['monitoring_whitelist'] = ['0.0.0.0/0']
+    # gitlab_rails['env'] = {'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000'}
+    # puma['worker_processes'] = 0
+    prometheus_monitoring['enable'] = false
+    # sidekiq['max_concurrency'] = 10
+    # gitaly['env'] = {'MALLOC_CONF' => 'dirty_decay_ms:1000,muzzy_decay_ms:1000', 'GITALY_COMMAND_SPAWN_MAX_PARALLEL' => '2'}
+  gitlab_post_reconfigure_script: |
+    while ! curl -sfI -o /dev/null http://127.0.0.1:40080/-/readiness;
+    do
+    echo "GitLab service is not ready."
+    sleep 1
+    done
+    echo "GitLab service started normally"
+    curl -Ssf -H "PRIVATE-TOKEN: ${GITLAB_ROOT_TOKEN}" "http://127.0.0.1:40080/api/v4/version" || (
+      gitlab-rails runner "token = User.find_by_username('root').personal_access_tokens.create(scopes: [:api, :write_repository, :sudo], name: 'exastro system token'); token.set_token('${GITLAB_ROOT_TOKEN}'); token.save!"
+    )
+    echo "GitLab post reconfigure script ended."
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gitlab-volumes
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /var/data/epoch-kind-cluster/gitlab
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-volumes
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "20Gi"
+  storageClassName: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+spec:
+  selector:
+    matchLabels:
+      name: gitlab
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: gitlab
+    spec:
+      volumes:
+      - name: gitlab-volumes
+        persistentVolumeClaim:
+          claimName: gitlab-volumes
+      containers:
+      - name: gitlab
+        image: gitlab/gitlab-ce:15.11.13-ce.0
+        env:
+        - name: GITLAB_OMNIBUS_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: gitlab-config
+              key: gitlab_omnibus_config
+        - name: GITLAB_POST_RECONFIGURE_SCRIPT
+          valueFrom:
+            configMapKeyRef:
+              name: gitlab-config
+              key: gitlab_post_reconfigure_script
+        - name: GITLAB_EXTERNAL_URL
+          value: "{{GITLAB_PROTOCOL}}://{{GITLAB_HOST}}:{{GITLAB_PORT}}"
+        - name: EXTERNAL_URL_REGISTRY
+          value: "{{GITLAB_PROTOCOL}}://{{GITLAB_HOST}}:{{GITLAB_REGISTORY_PORT}}"
+        - name: GITLAB_ROOT_PASSWORD
+          value: "{{GITLAB_ROOT_PASSWORD}}"
+        - name: GITLAB_ROOT_TOKEN
+          value: "{{GITLAB_ROOT_TOKEN}}"
+        volumeMounts:
+        - name: gitlab-volumes
+          subPath: opt
+          mountPath: /var/opt/gitlab
+        - name: gitlab-volumes
+          subPath: log
+          mountPath: /var/log/gitlab
+        - name: gitlab-volumes
+          subPath: etc
+          mountPath: /etc/gitlab
+        readinessProbe:
+          httpGet:
+            path: /-/readiness
+            port: 40080
+          timeoutSeconds: 3600
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab-webservice-default
+  labels:
+    name: gitlab
+spec:
+  type: NodePort
+  ports:
+  - name: http-webservice
+    port: 40080
+    targetPort: 40080
+    nodePort: {{GITLAB_PORT}}
+  selector:
+    name: gitlab
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab-registry
+  labels:
+    name: gitlab
+spec:
+  type: NodePort
+  ports:
+  - name: registry
+    port: 40081
+    targetPort: 40081
+    nodePort: {{GITLAB_REGISTORY_PORT}}
+  selector:
+    name: gitlab

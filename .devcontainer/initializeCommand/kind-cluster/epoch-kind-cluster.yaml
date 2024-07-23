@@ -1,0 +1,79 @@
+#   Copyright 2024 NEC Corporation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  # kubernetes api serverを外部公開する設定
+  #   apiServerAddressがdockerのpublishの接続元アドレスに反映されるので、0.0.0.0に一旦設定する
+  apiServerAddress: "0.0.0.0"
+  apiServerPort: 6443
+nodes:
+- role: control-plane
+  extraPortMappings:
+    - containerPort: 30080
+      hostPort: 30080
+    - containerPort: 30081
+      hostPort: 30081
+    # gitlab web port
+    - containerPort: {{GITLAB_PORT}}
+      hostPort: {{GITLAB_PORT}}
+    # gitlab registory port
+    - containerPort: {{GITLAB_REGISTORY_PORT}}
+      hostPort: {{GITLAB_REGISTORY_PORT}}
+    # argocd port
+    - containerPort: {{ARGOCD_HTTP_PORT}}
+      hostPort: {{ARGOCD_HTTP_PORT}}
+    - containerPort: {{ARGOCD_HTTPS_PORT}}
+      hostPort: {{ARGOCD_HTTPS_PORT}}
+    # argo workflows port
+    - containerPort: {{ARGOWF_HTTP_PORT}}
+      hostPort: {{ARGOWF_HTTP_PORT}}
+
+  # kubernetes api serverを外部公開する設定
+  #   kubernetes api serverをdockerのhostで接続できるように設定
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      certSANs: ['localhost', '127.0.0.1', '10.96.0.1', '{{DEV_SERVER_HOST}}']
+  extraMounts:
+    - hostPath: /usr/share/pki/ca-trust-source/anchors/UserRootCertificate.crt
+      containerPath: /etc/ssl/certs/ca-certificates.crt
+    - hostPath: "{{EPOCH_REPO_ROOT}}/.volumes/epoch-kind-cluster"
+      containerPath: /var/data/epoch-kind-cluster
+- role: worker
+  extraMounts:
+    - hostPath: /usr/share/pki/ca-trust-source/anchors/UserRootCertificate.crt
+      containerPath: /etc/ssl/certs/ca-certificates.crt
+    - hostPath: "{{EPOCH_REPO_ROOT}}/.volumes/epoch-kind-cluster"
+      containerPath: /var/data/epoch-kind-cluster
+- role: worker
+  extraMounts:
+    - hostPath: /usr/share/pki/ca-trust-source/anchors/UserRootCertificate.crt
+      containerPath: /etc/ssl/certs/ca-certificates.crt
+    - hostPath: "{{EPOCH_REPO_ROOT}}/.volumes/epoch-kind-cluster"
+      containerPath: /var/data/epoch-kind-cluster
+# コンテナレジストリにhttpで接続できるようにする設定
+# ※暫定設定
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri"]
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{GITLAB_HOST}}:{{GITLAB_REGISTORY_PORT}}"]
+          endpoint = ["{{GITLAB_PROTOCOL}}://{{GITLAB_HOST}}:{{GITLAB_REGISTORY_PORT}}"]
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."{{GITLAB_HOST}}:{{GITLAB_REGISTORY_PORT}}".tls]
+          insecure_skip_verify = true

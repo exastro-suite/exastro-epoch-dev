@@ -1,0 +1,17 @@
+.devcontainer/.env
+/.volumes/
+/.vscode_extensions/
+/.vscode/
+.talismanrc
+__pycache__/
+/epoch_root/*/common_library/
+/epoch_root/*/common_resources/
+/epoch_root/*/version
+/.private/
+/.reference/
+.dccache
+.pytest_cache/
+.coverage
+coverage.xml
+pytest.ini
+nohup.out

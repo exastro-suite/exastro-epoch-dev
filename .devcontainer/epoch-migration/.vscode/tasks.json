@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Initialize Exastro Storage Volumes and Stop Dev Containers",
+      "type": "shell",
+      "command": "${workspaceFolder}/tools/restart-container/initialize-all.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Initialize ALL Volumes and Stop Containers",
+      "type": "shell",
+      "command": "${workspaceFolder}/tools/restart-container/initialize-all.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Stop All Dev Container",
+      "type": "shell",
+      "command": "${workspaceFolder}/tools/restart-container/stop-dev-containers.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Detach VSCODE epoch-server",
+      "type": "shell",
+      "command": "sudo",
+      "args": ["docker", "exec", "-it", "devcontainer-epoch-server-1", "bash", "${workspaceFolder}/.devcontainer/epoch-server/postAttachCommand.sh", "detach"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Detach VSCODE epoch-agent",
+      "type": "shell",
+      "command": "sudo",
+      "args": ["docker", "exec", "-it", "devcontainer-epoch-agent-1", "bash", "${workspaceFolder}/.devcontainer/epoch-agent/postAttachCommand.sh", "detach"],
+      "problemMatcher": []
+    }
+  ]
+}

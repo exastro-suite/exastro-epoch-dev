@@ -1,0 +1,177 @@
+#   Copyright 2024 NEC Corporation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+version: '3.1'
+secrets:
+  host_certificate_file:
+    file: ${HOST_CERTIFICATE_FILE:-/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem}
+
+services:
+  epoch-server:
+    build:
+      target: develop_build
+      secrets:
+        - host_certificate_file
+    command: bash /workspace/.devcontainer/epoch-server/devcontainer-command.sh
+    environment:
+      - LOG_LEVEL=DEBUG
+      - NETWORK_ID=${NETWORK_ID}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - http_proxy=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - https_proxy=${HTTPS_PROXY}
+      - NO_PROXY=${NO_PROXY},epoch-server,epoch-agent,keycloak,platform-auth,platform-api,platform-web,ita-web-server,ita-api-organization,ita-api-admin,ita-api-oase-receiver
+      - no_proxy=${NO_PROXY},epoch-server,epoch-agent,keycloak,platform-auth,platform-api,platform-web,ita-web-server,ita-api-organization,ita-api-admin,ita-api-oase-receiver
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+      - SSL_CERT_DIR=/etc/ssl/certs
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED:-1}
+      - FLASK_SERVER_PORT=8002
+      - KUBECONFIG=/workspace/.secrets/kubeconfig
+      - EPOCH_REPO_ROOT=${EPOCH_REPO_ROOT}
+    volumes:
+      # devcontainer settings
+      - ~/.netrc:/home/app_user/.netrc
+      - ~/.gitconfig:/home/app_user/.gitconfig
+      - ~/.config/git/ignore:/home/app_user/.config/git/ignore
+      - ${TALISMAN_HOME}:${TALISMAN_HOME}
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/mainte/talisman/.talismanrc:/mnt/mainte/talisman/.talismanrc
+      - ../.vscode_extensions/epoch-server/.vscode-server/extensions:/home/app_user/.vscode-server/extensions
+      - ../.vscode_extensions/epoch-server/.vscode-server-insiders/extensions:/home/app_user/.vscode-server-insiders/extensions
+      - ${HOST_CERTIFICATE_FILE:-/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem}:/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+      - /usr/share/pki/ca-trust-source/anchors/UserRootCertificate.crt:/etc/ssl/certs/ca-certificates.crt
+      - ../tools/shell:/home/app_user/bin:cached
+      # application mount settings
+      - ..:/workspace:cached
+      - ./epoch-server/.vscode/launch.json:/workspace/.vscode/launch.json
+      - ./epoch-server/.vscode/tasks.json:/workspace/.vscode/tasks.json
+      - ../epoch_root/epoch_server:/app:cached
+      - ../epoch_root/version:/workspace/epoch_root/epoch_server/version:cached
+      - ../epoch_root/version:/app/version:cached
+      - ../epoch_root/common_library:/workspace/epoch_root/epoch_server/common_library:cached
+      - ../epoch_root/common_library:/app/common_library:cached
+      - ../epoch_root/common_resources:/workspace/epoch_root/epoch_server/common_resources:cached
+      - ../epoch_root/common_resources:/app/common_resources:cached
+      - ../epoch_root/epoch_server/config/httpd.conf/httpd.conf:/etc/httpd/httpd.conf
+      - ../epoch_root/epoch_server/config/httpd.conf/wsgi.conf:/etc/httpd/conf.d/wsgi.conf
+      - ../epoch_root/epoch_server/config/httpd.conf/rewrite.conf:/etc/httpd/conf.d/rewrite.conf
+      # reference directory
+      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:ro
+      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:ro
+      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:ro
+      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:ro
+  epoch-agent:
+    build:
+      target: develop_build
+      secrets:
+        - host_certificate_file
+    command: bash /workspace/.devcontainer/epoch-agent/devcontainer-command.sh
+    environment:
+      - LOG_LEVEL=DEBUG
+      - NETWORK_ID=${NETWORK_ID}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - http_proxy=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - https_proxy=${HTTPS_PROXY}
+      - NO_PROXY=${NO_PROXY},epoch-server,epoch-agent,keycloak,platform-auth,platform-api,platform-web,ita-web-server,ita-api-organization,ita-api-admin,ita-api-oase-receiver
+      - no_proxy=${NO_PROXY},epoch-server,epoch-agent,keycloak,platform-auth,platform-api,platform-web,ita-web-server,ita-api-organization,ita-api-admin,ita-api-oase-receiver
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+      - SSL_CERT_DIR=/etc/ssl/certs
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED:-1}
+      - KUBECONFIG=/workspace/.secrets/kubeconfig
+      - EPOCH_REPO_ROOT=${EPOCH_REPO_ROOT}
+    volumes:
+      # devcontainer settings
+      - ~/.netrc:/home/app_user/.netrc
+      - ~/.gitconfig:/home/app_user/.gitconfig
+      - ~/.config/git/ignore:/home/app_user/.config/git/ignore
+      - ${TALISMAN_HOME}:${TALISMAN_HOME}
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/mainte/talisman/.talismanrc:/mnt/mainte/talisman/.talismanrc
+      - ../.vscode_extensions/epoch-agent/.vscode-server/extensions:/home/app_user/.vscode-server/extensions
+      - ../.vscode_extensions/epoch-agent/.vscode-server-insiders/extensions:/home/app_user/.vscode-server-insiders/extensions
+      - ${HOST_CERTIFICATE_FILE:-/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem}:/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+      - /usr/share/pki/ca-trust-source/anchors/UserRootCertificate.crt:/etc/ssl/certs/ca-certificates.crt
+      - ../tools/shell:/home/app_user/bin:cached
+      # application mount settings
+      - ..:/workspace:cached
+      - ./epoch-agent/.vscode/launch.json:/workspace/.vscode/launch.json
+      - ./epoch-agent/.vscode/tasks.json:/workspace/.vscode/tasks.json
+      - ../epoch_root/epoch_agent:/app:cached
+      - ../epoch_root/version:/workspace/epoch_root/epoch_agent/version:cached
+      - ../epoch_root/version:/app/version:cached
+      - ../epoch_root/common_library:/workspace/epoch_root/epoch_agent/common_library:cached
+      - ../epoch_root/common_library:/app/common_library:cached
+      - ../epoch_root/common_resources:/workspace/epoch_root/epoch_agent/common_resources:cached
+      - ../epoch_root/common_resources:/app/common_resources:cached
+      # reference directory
+      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:ro
+      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:ro
+      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:ro
+      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:ro
+
+  epoch-db:
+    ports:
+      - "0.0.0.0:${EXT_PORT_EPOCH_DB:-3310}:3306"
+
+  epoch-migration:
+    build:
+      target: develop_build
+      secrets:
+        - host_certificate_file
+    environment:
+      - LOG_LEVEL=DEBUG
+      - NETWORK_ID=${NETWORK_ID}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - http_proxy=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - https_proxy=${HTTPS_PROXY}
+      - NO_PROXY=${NO_PROXY},epoch-server,epoch-agent,keycloak,platform-auth,platform-api,platform-web,ita-web-server,ita-api-organization,ita-api-admin,ita-api-oase-receiver
+      - no_proxy=${NO_PROXY},epoch-server,epoch-agent,keycloak,platform-auth,platform-api,platform-web,ita-web-server,ita-api-organization,ita-api-admin,ita-api-oase-receiver
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+      - SSL_CERT_DIR=/etc/ssl/certs
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED:-1}
+      - KUBECONFIG=/workspace/.secrets/kubeconfig
+      - EPOCH_REPO_ROOT=${EPOCH_REPO_ROOT}
+    volumes:
+      # devcontainer settings
+      - ~/.netrc:/home/app_user/.netrc
+      - ~/.gitconfig:/home/app_user/.gitconfig
+      - ~/.config/git/ignore:/home/app_user/.config/git/ignore
+      - ${TALISMAN_HOME}:${TALISMAN_HOME}
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/mainte/talisman/.talismanrc:/mnt/mainte/talisman/.talismanrc
+      - ../.vscode_extensions/epoch-migration/.vscode-server/extensions:/home/app_user/.vscode-server/extensions
+      - ../.vscode_extensions/epoch-migration/.vscode-server-insiders/extensions:/home/app_user/.vscode-server-insiders/extensions
+      - ${HOST_CERTIFICATE_FILE:-/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem}:/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+      - /usr/share/pki/ca-trust-source/anchors/UserRootCertificate.crt:/etc/ssl/certs/ca-certificates.crt
+      - ../tools/shell:/home/app_user/bin:cached
+      # application mount settings
+      - ..:/workspace:cached
+      - ./epoch-migration/.vscode/launch.json:/workspace/.vscode/launch.json
+      - ./epoch-migration/.vscode/tasks.json:/workspace/.vscode/tasks.json
+      - ../epoch_root/epoch_migration:/app:cached
+      - ../epoch_root/version:/workspace/epoch_root/epoch_migration/version:cached
+      - ../epoch_root/version:/app/version:cached
+      - ../epoch_root/common_library:/workspace/epoch_root/epoch_migration/common_library:cached
+      - ../epoch_root/common_library:/app/common_library:cached
+      - ../epoch_root/common_resources:/workspace/epoch_root/epoch_migration/common_resources:cached
+      - ../epoch_root/common_resources:/app/common_resources:cached
+      # reference directory
+      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:ro
+      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:ro
+      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:ro
+      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:ro
