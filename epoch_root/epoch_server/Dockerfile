@@ -83,8 +83,11 @@ RUN --mount=type=secret,id=host_certificate_file,dst=/etc/pki/ca-trust/extracted
     iputils \
     docker-ce-cli \
     jq \
-    nodejs \
-&&  npm config set registry http://registry.npmjs.org/ \
+&&  dnf module -y reset nodejs \
+&&  dnf module -y enable nodejs:20 \
+&&  dnf module -y install nodejs:20 \ 
+&&  npm config set registry https://registry.npmjs.org/ \
+&&  npm -g config set strict-ssl false \
 &&  npm install -g @apidevtools/swagger-cli \
 &&  usermod -G wheel $USERNAME \
 &&  echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
