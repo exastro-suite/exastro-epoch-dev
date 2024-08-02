@@ -47,6 +47,14 @@ if [ -z "${ARGOCD_ADMIN_PASSWORD}" ]; then
     echo "** ERROR: ARGOCD_ADMIN_PASSWORD undefined (.env settings)"
     CHECK_RESULT='NG'
 fi
+if [ -z "${DEV_SERVER_HOST}" ]; then
+    echo "** ERROR: DEV_SERVER_HOST undefined (.env settings)"
+    CHECK_RESULT='NG'
+fi
+if [ -z "${EXTERNAL_URL}" ]; then
+    echo "** ERROR: EXTERNAL_URL undefined (.env settings)"
+    CHECK_RESULT='NG'
+fi
 if [ ${CHECK_RESULT} != 'OK' ]; then
     exit 1
 fi
@@ -54,6 +62,12 @@ fi
 # argocd admin password hash
 # ※see helm show value
 _ARGOCD_ADMIN_PASSWORD=$(htpasswd -nbBC 10 "" ${ARGOCD_ADMIN_PASSWORD} | tr -d ':\n' | sed 's/$2y/$2a/')
+
+# argocd netloc
+_ARGOCD_EXTERNAL_NETLOC=$(echo "${EXTERNAL_URL}" | sed -e 's!^.*://!!' -e 's|/.*$||')
+
+# argocd external hostname
+_ARGOCD_EXTERNAL_HOSTNAME=$(echo "${EXTERNAL_URL}" | sed -e 's!^.*://!!' -e 's|/.*$||' -e 's|:.*$||')
 
 #
 # argo helm repo
@@ -73,6 +87,9 @@ sed -e "s|{{HTTP_PROXY}}|${HTTP_PROXY}|g" \
     -e "s|{{HTTPS_PROXY}}|${HTTPS_PROXY}|g" \
     -e "s|{{NO_PROXY}}|${NO_PROXY}|g" \
     -e "s|{{ARGOCD_APP_VERSION}}|${ARGOCD_APP_VERSION}|g" \
+    -e "s|{{DEV_SERVER_HOST}}|${DEV_SERVER_HOST}|g" \
+    -e "s|{{_ARGOCD_EXTERNAL_NETLOC}}|${_ARGOCD_EXTERNAL_NETLOC}|g" \
+    -e "s|{{_ARGOCD_EXTERNAL_HOSTNAME}}|${_ARGOCD_EXTERNAL_HOSTNAME}|g" \
     -e "s|{{ARGOCD_HTTP_PORT}}|${ARGOCD_HTTP_PORT}|g" \
     -e "s|{{ARGOCD_HTTPS_PORT}}|${ARGOCD_HTTPS_PORT}|g" \
     -e "s|{{_ARGOCD_ADMIN_PASSWORD}}|${_ARGOCD_ADMIN_PASSWORD}|g" \

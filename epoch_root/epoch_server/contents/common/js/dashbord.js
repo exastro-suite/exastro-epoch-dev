@@ -1,6 +1,16 @@
 $(function(){
-    CommonAuth.onAuthSuccess(() => {
-        alert("login scceed!!");
-        console.log("dashbord.js : login scceed!!");
+    // CommonAuth.onAuthSuccess(() => {
+    //     console.log("dashbord.js : login scceed!!");
+    // });
+    $("#argocd_link").on("click",() => {
+        console.log("#argocd_link click")
+        window.location = "/_/argocd/direct_sso_login?organization_id=" + TESTgetRealm() + "&argocd_url=" + encodeURIComponent(window.location.origin + "/_/argocd/user-info");
     });
+    function TESTgetRealm() {
+        try {
+            return CommonAuth.getRealm();
+        } catch {
+            return window.location.pathname.split("/")[1];
+        }
+    }
 })
