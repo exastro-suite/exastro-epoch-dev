@@ -110,7 +110,7 @@ spec:
               name: gitlab-config
               key: gitlab_post_reconfigure_script
         - name: GITLAB_EXTERNAL_URL
-          value: "{{GITLAB_PROTOCOL}}://{{GITLAB_HOST}}:{{GITLAB_PORT}}"
+          value: "{{GITLAB_EXTERNAL_URL}}"
         - name: EXTERNAL_URL_REGISTRY
           value: "{{GITLAB_PROTOCOL}}://{{GITLAB_HOST}}:{{GITLAB_REGISTORY_PORT}}"
         - name: GITLAB_ROOT_PASSWORD
