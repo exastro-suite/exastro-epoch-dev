@@ -15,8 +15,14 @@
 createClusterRoles: false
 
 global:
+  domain: "{{_ARGOCD_EXTERNAL_NETLOC}}/_/argocd"
   image:
     tag: "{{ARGOCD_APP_VERSION}}"
+  # arogocd server ⇒ arogocd dex server oidc connection setting
+  hostAliases:
+    - ip: {{DEV_SERVER_HOST}}
+      hostnames:
+        - {{_ARGOCD_EXTERNAL_HOSTNAME}}
 
 repoServer:
   env:
@@ -34,6 +40,10 @@ repoServer:
       value: "{{NO_PROXY}},argocd-applicationset-controller,argocd-dex-server,argocd-redis,argocd-repo-server,argocd-server"
 
 configs:
+  params:
+    # application.namespaces: "epoch-*"
+    server.basehref: /_/argocd/
+    server.insecure: true
   secret:
     argocdServerAdminPassword: "{{_ARGOCD_ADMIN_PASSWORD}}"
 
