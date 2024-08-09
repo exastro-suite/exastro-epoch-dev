@@ -2,9 +2,10 @@ import urllib.parse
 import globals
 import requests
 import os
-from flask import request, redirect
+from flask import request, redirect, make_response
 import urllib
 import re
+import json
 
 from common_library.common import common
 # from common_library.common import multi_lang
@@ -21,6 +22,8 @@ def routing(connection_app):
     """
     # オーガナイゼーションを指定したSSO呼び出し / SSO call with organization specified
     connection_app.add_url_rule(f"{ARGOCD_EXTERNAL_BASEPATH}/direct_sso_login", methods=["GET"], view_func=direct_sso_login)
+    # ArgoCD settings API
+    connection_app.add_url_rule(f"{ARGOCD_EXTERNAL_BASEPATH}/api/v1/settings", methods=["GET"], view_func=argocd_settings)
     # ArgoCD logout
     connection_app.add_url_rule(f"{ARGOCD_EXTERNAL_BASEPATH}/auth/logout", methods=["GET"], view_func=logout)
 
@@ -112,6 +115,33 @@ def direct_sso_login():
     return response
 
 
+def argocd_settings():
+    """ArgoCD API(/api/v1/settings) Rewrite
+
+    Returns:
+        Response: ArgoCD API(/api/v1/settings) response
+    """
+    req_urls = urllib.parse.urlparse(request.url)
+    req_urls = req_urls._replace(scheme=os.environ.get('ARGOCD_SERVER_PROTOCOL'))
+    req_urls = req_urls._replace(netloc=f"{os.environ.get('ARGOCD_SERVER_HOST')}:{os.environ.get('ARGOCD_SERVER_PORT')}")
+    req_urls = req_urls._replace(path=re.sub(rf'^{ARGOCD_EXTERNAL_BASEPATH}', '', req_urls.path))
+
+    res_api = requests.get(req_urls.geturl(), cookies=request.cookies)
+    if res_api.status_code == 200 and res_api.json is not None:
+        res_json = json.loads(res_api.text)
+        try:
+            # SSOの一覧を消す / Clear SSO list
+            res_json["dexConfig"]["connectors"] = []
+        except Exception:
+            pass
+        # deepcode ignore XSS: <please specify a reason of ignoring this>
+        return make_response(res_json, 200)
+    else:
+        # deepcode ignore XSS: <please specify a reason of ignoring this>
+        return make_response(res_api.text, res_api.status_code)
+
+
+@common.api_common_decorator
 def logout():
     """ArgoCD logout
 

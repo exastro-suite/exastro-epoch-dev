@@ -18,6 +18,12 @@ BASEDIR=$(realpath $(dirname "$0"))
 BASENAME=$(basename "$0")
 REPOROOT=$(realpath "${BASEDIR}/../../..")
 
+which helm &> /dev/null
+if [ $? -ne 0 ]; then
+    echo "** ERROR ** helm command not installed"
+    exit 1
+fi
+
 echo "---------------------------------------------------------------------------------"
 echo "-- Start ${BASENAME}"
 echo "---------------------------------------------------------------------------------"
@@ -79,26 +85,41 @@ helm repo update
 # helm show values
 #
 helm show values argo/argo-cd --version=${ARGOCD_CHART_VERSION} > ${BASEDIR}/sample.argocd-values.yaml
+# helm show values argo/argo-cd > ${BASEDIR}/sample.argocd-values.yaml
 
 #
 # Generate epoch-argocd-value.yaml
 #
-sed -e "s|{{HTTP_PROXY}}|${HTTP_PROXY}|g" \
+if [ -z "${EXTERNAL_URL_HOST_IP}" ]; then
+    sed -e '/# if defined EXTERNAL_URL_HOST_IP/,/# endif defined EXTERNAL_URL_HOST_IP/d' \
+        ${BASEDIR}/epoch-argocd-values.yaml > /tmp/epoch-argocd-values.yaml
+else
+    cp -f ${BASEDIR}/epoch-argocd-values.yaml /tmp/epoch-argocd-values.yaml
+fi
+
+sed -i \
+    -e "s|{{HTTP_PROXY}}|${HTTP_PROXY}|g" \
     -e "s|{{HTTPS_PROXY}}|${HTTPS_PROXY}|g" \
     -e "s|{{NO_PROXY}}|${NO_PROXY}|g" \
     -e "s|{{ARGOCD_APP_VERSION}}|${ARGOCD_APP_VERSION}|g" \
     -e "s|{{DEV_SERVER_HOST}}|${DEV_SERVER_HOST}|g" \
+    -e "s|{{EXTERNAL_URL}}|${EXTERNAL_URL}|g" \
     -e "s|{{_ARGOCD_EXTERNAL_NETLOC}}|${_ARGOCD_EXTERNAL_NETLOC}|g" \
     -e "s|{{_ARGOCD_EXTERNAL_HOSTNAME}}|${_ARGOCD_EXTERNAL_HOSTNAME}|g" \
+    -e "s|{{EXTERNAL_URL_HOST_IP}}|${EXTERNAL_URL_HOST_IP}|g" \
     -e "s|{{ARGOCD_HTTP_PORT}}|${ARGOCD_HTTP_PORT}|g" \
     -e "s|{{ARGOCD_HTTPS_PORT}}|${ARGOCD_HTTPS_PORT}|g" \
     -e "s|{{_ARGOCD_ADMIN_PASSWORD}}|${_ARGOCD_ADMIN_PASSWORD}|g" \
-    ${BASEDIR}/epoch-argocd-values.yaml > /tmp/epoch-argocd-values.yaml
+    /tmp/epoch-argocd-values.yaml
+
+# cat /tmp/epoch-argocd-values.yaml
+# exit 0
 
 #
 # install argocd
 #
 helm upgrade -n exastro argocd argo/argo-cd -f /tmp/epoch-argocd-values.yaml --create-namespace --install --version=${ARGOCD_CHART_VERSION}
+# helm upgrade -n exastro argocd argo/argo-cd -f /tmp/epoch-argocd-values.yaml --create-namespace --install
 
 exit 0
 
