@@ -1,0 +1,16 @@
+data:
+  url: {{EXTERNAL_URL}}/_/argocd
+  dex.config: |
+    logger:
+      level: debug
+    connectors:
+    - type: saml
+      id: exastro._dummy
+      name: exastro._dummy
+      config:
+        ssoURL: https://localhost
+        ca: /dummy-ca-volume/ca.crt
+        entityIssuer: dummy
+        usernameAttr: dummy
+        emailAttr: dummy
+        groupsAttr: dummy

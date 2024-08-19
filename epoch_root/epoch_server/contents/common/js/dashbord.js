@@ -13,4 +13,6 @@ $(function(){
             return window.location.pathname.split("/")[1];
         }
     }
+    //document.cookie = "argocd.oauthstate=; max-age=0;";
+    //document.cookie = "argocd.token=; max-age=0;";
 })
