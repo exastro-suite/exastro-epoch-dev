@@ -15,8 +15,16 @@
 createClusterRoles: false
 
 global:
+  domain: {{_ARGOCD_EXTERNAL_NETLOC}}/_/argocd
   image:
-    tag: "{{ARGOCD_APP_VERSION}}"
+    tag: {{ARGOCD_APP_VERSION}}
+  # if defined EXTERNAL_URL_HOST_IP
+  # arogocd server ⇒ arogocd dex server oidc connection setting
+  hostAliases:
+    - ip: {{EXTERNAL_URL_HOST_IP}}
+      hostnames:
+        - {{_ARGOCD_EXTERNAL_HOSTNAME}}
+  # endif defined EXTERNAL_URL_HOST_IP
 
 repoServer:
   env:
@@ -34,8 +42,52 @@ repoServer:
       value: "{{NO_PROXY}},argocd-applicationset-controller,argocd-dex-server,argocd-redis,argocd-repo-server,argocd-server"
 
 configs:
+  cm:
+    # dex-serverのサービスを起動するためにダミーのSSO設定を仕込んでおく
+    # Prepare dummy SSO settings to start the dex-server service
+    dex.config: |
+      connectors:
+        - type: saml
+          id: exastro._dummy
+          name: exastro._dummy
+          config:
+            ssoURL: https://localhost
+            ca: /dummy-ca-volume/ca.crt
+            entityIssuer: dummy
+            usernameAttr: dummy
+            emailAttr: dummy
+            groupsAttr: dummy
+  params:
+    # application.namespaces: "epoch-*"
+    server.basehref: /_/argocd
+    # server.rootpath: ''
+    server.insecure: true
   secret:
     argocdServerAdminPassword: "{{_ARGOCD_ADMIN_PASSWORD}}"
+
+dex:
+  initContainers:
+    # initContainerでダミーのSSO設定用の証明書を作成する
+    # Create a certificate for dummy SSO settings with initContainer
+    - name: create-dummy-ca
+      image: almalinux
+      command: ["bash", "-c"]
+      args:
+        - |
+          echo "[`date '+%Y/%m/%d %H:%M:%S'`] START create-dummy-ca";
+          openssl genrsa 2048 > /dummy-ca-volume/ca.key
+          openssl req -x509 -new -nodes -key /dummy-ca-volume/ca.key -subj "/CN=dummy" -days 10000 -out /dummy-ca-volume/ca.crt
+          ls -l /dummy-ca-volume/;
+          echo "[`date '+%Y/%m/%d %H:%M:%S'`] FINISH create-dummy-ca";
+      volumeMounts:
+        - name: dummy-ca-volume
+          mountPath: /dummy-ca-volume
+  volumeMounts:
+    - name: dummy-ca-volume
+      mountPath: /dummy-ca-volume
+  volumes:
+    - name: dummy-ca-volume
+      emptyDir: {}
 
 server:
   service:
