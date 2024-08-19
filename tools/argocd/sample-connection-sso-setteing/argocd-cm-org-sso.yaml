@@ -1,0 +1,11 @@
+    - type: saml
+      id: exastro.{{ORGANIZATION_ID}}
+      name: exastro.{{ORGANIZATION_ID}}
+      config:
+        ssoURL: {{EXTERNAL_URL}}/auth/realms/{{ORGANIZATION_ID}}/protocol/saml
+        caData: {{CADATA}}
+        entityIssuer: _{{ORGANIZATION_ID}}-argocd-saml
+        redirectURI:  {{EXTERNAL_URL}}/_/argocd/api/dex/callback
+        usernameAttr: username
+        emailAttr: email
+        groupsAttr: Role

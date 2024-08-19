@@ -48,7 +48,7 @@ ${BASEDIR}/argocd/install-argocd.sh
 ${BASEDIR}/tekton-pipelines/install-tekton-pipelines.sh
 
 # install argo-workflows
-${BASEDIR}/argo-workflows/install-argo-workflows.sh
+# ${BASEDIR}/argo-workflows/install-argo-workflows.sh
 
 
 echo "---------------------------------------------------------------------------------"

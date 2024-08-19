@@ -24,6 +24,8 @@ services:
         - host_certificate_file
     command: bash /workspace/.devcontainer/epoch-server/devcontainer-command.sh
     environment:
+      - ARGOCD_SERVER_HOST=${DEV_SERVER_HOST:-argocd-server}
+      - ARGOCD_SERVER_PORT=${ARGOCD_HTTP_PORT:-80}
       - LOG_LEVEL=DEBUG
       - NETWORK_ID=${NETWORK_ID}
       - HTTP_PROXY=${HTTP_PROXY}
@@ -67,10 +69,10 @@ services:
       - ../epoch_root/epoch_server/config/httpd.conf/wsgi.conf:/etc/httpd/conf.d/wsgi.conf
       - ../epoch_root/epoch_server/config/httpd.conf/rewrite.conf:/etc/httpd/conf.d/rewrite.conf
       # reference directory
-      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:ro
-      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:ro
-      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:ro
-      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:ro
+      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:${PLATFORM_REPO_MOUNT_MODE:-ro}
   epoch-agent:
     build:
       target: develop_build
@@ -117,10 +119,10 @@ services:
       - ../epoch_root/common_resources:/workspace/epoch_root/epoch_agent/common_resources:cached
       - ../epoch_root/common_resources:/app/common_resources:cached
       # reference directory
-      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:ro
-      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:ro
-      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:ro
-      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:ro
+      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:${PLATFORM_REPO_MOUNT_MODE:-ro}
 
   epoch-db:
     ports:
@@ -171,7 +173,7 @@ services:
       - ../epoch_root/common_resources:/workspace/epoch_root/epoch_migration/common_resources:cached
       - ../epoch_root/common_resources:/app/common_resources:cached
       # reference directory
-      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:ro
-      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:ro
-      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:ro
-      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:ro
+      - ${PLATFORM_REPO_ROOT}/platform_root:/workspace/.reference/exastro-platform-dev/platform_root:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/.devcontainer:/workspace/.reference/exastro-platform-dev/.devcontainer:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/.private:/workspace/.reference/exastro-platform-dev/.private:${PLATFORM_REPO_MOUNT_MODE:-ro}
+      - ${PLATFORM_REPO_ROOT}/test:/workspace/.reference/exastro-platform-dev/test:${PLATFORM_REPO_MOUNT_MODE:-ro}

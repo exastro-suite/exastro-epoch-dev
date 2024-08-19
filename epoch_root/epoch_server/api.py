@@ -22,12 +22,14 @@ from logging.config import dictConfig as dictLogConf
 # User Imports
 import globals
 from common_library.common.exastro_logging import ExastroLogRecordFactory, LOGGING
+from controllers import argocd_sso_service_controller
 
 # load environ variables
 load_dotenv(override=True)
 
 connexion_app = connexion.FlaskApp(__name__, specification_dir='./swagger/')
 connexion_app.add_api('swagger.yaml')
+argocd_sso_service_controller.routing(connexion_app)
 
 app = connexion_app.app
 globals.init(app)

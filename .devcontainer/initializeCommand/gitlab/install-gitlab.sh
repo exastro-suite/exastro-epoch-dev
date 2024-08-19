@@ -57,10 +57,16 @@ if [ ${CHECK_RESULT} != 'OK' ]; then
     exit 1
 fi
 
+if [ -z "${GITLAB_EXTERNAL_URL}" ]; then
+    echo "** GITLAB_EXTERNAL_URL: not .env ... PROTOCOL, HOST, PORT Overwrite!"
+    GITLAB_EXTERNAL_URL=${GITLAB_PROTOCOL}://${GITLAB_HOST}:${GITLAB_PORT}
+fi
+
 #
 # Generate epoch-gitlab.yaml
 #
-sed -e "s/{{GITLAB_PROTOCOL}}/${GITLAB_PROTOCOL}/g" \
+sed -e "s|{{GITLAB_EXTERNAL_URL}}|${GITLAB_EXTERNAL_URL}|g" \
+    -e "s/{{GITLAB_PROTOCOL}}/${GITLAB_PROTOCOL}/g" \
     -e "s/{{GITLAB_HOST}}/${GITLAB_HOST}/g" \
     -e "s/{{GITLAB_PORT}}/${GITLAB_PORT}/g" \
     -e "s/{{GITLAB_REGISTORY_PORT}}/${GITLAB_REGISTORY_PORT}/g" \

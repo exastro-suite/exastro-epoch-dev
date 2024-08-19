@@ -78,6 +78,8 @@ RUN --mount=type=secret,id=host_certificate_file,dst=/etc/pki/ca-trust/extracted
     sudo \
     git \
     vim \
+    zip \
+    unzip \
     diffutils \
     bind-utils \
     iputils \
